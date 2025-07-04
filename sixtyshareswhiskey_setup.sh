@@ -83,6 +83,8 @@ function validate_script_parameters() {
     print_usage
   fi
 }
+
+
 function validate_parameters() {
   echo "[*] Validating parameters"
   validate_script_parameters
@@ -90,12 +92,7 @@ function validate_parameters() {
 
 function update_the_system() {
   echo "[*] Updating system..."
-  sudo apt-get update && sudo apt-get full-upgrade -y
-  echo "***********************************************************"
-  echo "*****YOU MUST SET YOUR WLAN COUNTRY UNDER LOCALIZATION*****"
-  echo "***********************************************************"
-  read -p "Press [Enter] to continue…"
-  sudo raspi-config
+  sudo apt-get update && sudo apt-get full-upgrade -y || true
 }
 
 function install_dependencies_from_internet() {
@@ -174,7 +171,8 @@ function move_hostapd_conf() {
   fi
   sudo mv hostapd.conf /etc/hostapd/
 
-  sudo echo 'DAEMON_CONF="/etc/hostapd/hostapd.conf"' > /etc/default/hostapd
+  echo 'DAEMON_CONF="/etc/hostapd/hostapd.conf"' | sudo tee /etc/default/hostapd > /dev/null
+
   }
 
 function configure_hostapd_to_wait_for_dhcpd() {
@@ -182,7 +180,7 @@ function configure_hostapd_to_wait_for_dhcpd() {
   
   if [[ $MODE == "standalone" ]]; then
     sudo mkdir -p /etc/systemd/system/hostapd.service.d
-    mv override.conf /etc/systemd/system/hostapd.service.d/
+    sudo mv override.conf /etc/systemd/system/hostapd.service.d/
   fi
 
   sudo systemctl unmask hostapd
@@ -221,6 +219,7 @@ function prepare_certificates() {
   sudo chmod 644 /srv/sixtyshareswhiskey/certs/cert.pem
 }
 
+
 function move_nginx_conf() {
   echo "[*] Moving server conf to nginx sites-available"
   sudo mv sixtyshareswhiskey /etc/nginx/sites-available/ 
@@ -238,18 +237,39 @@ function enable_big_uploads() {
 }
 
 
+function create_secure_user() {
+  echo "[*] Creating a user for Flask app"
+  RAND_USER="flask_$(head /dev/urandom | tr -dc a-z0-9 | head -c 6)"
+  sudo useradd --system --no-create-home --shell /usr/sbin/nologin $RAND_USER
+  echo "[*] Created user: $RAND_USER"
+  RAND_GROUP="grp_$(head /dev/urandom | tr -dc a-z0-9 | head -c 6)"
+  sudo groupadd "$RAND_GROUP"
+  sudo usermod -g "$RAND_GROUP" "$RAND_USER"
+  sudo passwd -l $RAND_USER
+}
+
 function set_python_for_flask() {
   echo "[*] Setting up Python virtual environment for Flask..."
   sudo mkdir -p /srv/sixtyshareswhiskey
-  sudo chown "$(whoami):$(whoami)" /srv/sixtyshareswhiskey
-  python3 -m venv /srv/sixtyshareswhiskey/venv
-  source /srv/sixtyshareswhiskey/venv/bin/activate
-  /srv/sixtyshareswhiskey/venv/bin/pip install --upgrade pip flask flask_bcrypt
- }
+  sudo chown -R "$RAND_USER":"$RAND_GROUP" /srv/sixtyshareswhiskey
+  
+  sudo -u "$RAND_USER" bash -c "
+    python3 -m venv /srv/sixtyshareswhiskey/venv
+    source /srv/sixtyshareswhiskey/venv/bin/activate
+    /srv/sixtyshareswhiskey/venv/bin/pip install --upgrade pip flask flask_bcrypt
+  "
+}
+
 
 function configure_flask_app_for_daemon_mode() {
   echo "[*] Configuring app.py to listen on 0.0.0.0..."
   sed -i 's/"127\.0\.0\.1"/"0.0.0.0"/g' app.py
+}
+
+
+function update_user_for_systemd_service_file() {
+  echo "[*] Changing user in systemd service for Flask app..."
+  sed -i "s/User=RAND_USER/User=$RAND_USER/; s/Group=RAND_GROUP/Group=$RAND_GROUP/" sixtyshareswhiskey.service
 }
 
 function moving_server_and_frontend_systemd() {
@@ -260,7 +280,7 @@ function moving_server_and_frontend_systemd() {
   mv index.html style.css script.js /srv/sixtyshareswhiskey/
 
   echo "[*] Moving systemd service for Flask app..."
-  mv sixtyshareswhiskey.service /etc/systemd/system/ 
+  sudo mv sixtyshareswhiskey.service /etc/systemd/system/ 
 }
 
 function preparing_cleanup_cronjob() {
@@ -279,6 +299,10 @@ function configure_self_destruct_cron_job() {
   return 0
 }
 
+
+function get_ip_address() {
+  echo "$(ifconfig wlan0 | grep 'inet ' | awk '{print $2}')"
+}
 
 
 function start_the_service() {
@@ -300,8 +324,8 @@ function start_the_service() {
 }
 
 function print_success() {
-  echo "[✓] SixtySharesWhiskey_fork is ready. Connect to the hotspot and visit https://10.10.10.1"
-  echo "[*] Thank you for installing, God Bless!"
+  echo "[✓] SixtySharesWhiskey_fork is ready. Connect to the hotspot and visit https://$(get_ip_address)"
+  echo "[*] Keep on keeping on!"
   echo "[*] - AA-2109"
 }
 
@@ -341,6 +365,8 @@ function installation() {
   prepare_certificates
   move_nginx_conf
   enable_big_uploads
+  create_secure_user
+  update_user_for_systemd_service_file
   set_python_for_flask
 
   if [[ $mode == "standalone" ]]; then

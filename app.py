@@ -11,17 +11,6 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-##TLS settings
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-context.minimum_version = ssl.TLSVersion.TLSv1_2
-context.maximum_version = ssl.TLSVersion.TLSv1_3
-context.set_ciphers("ECDHE+AESGCM:ECDHE+CHACHA20")
-context.set_ecdh_curve("prime256v1")
-context.options |= ssl.OP_CIPHER_SERVER_PREFERENCE
-context.options |= ssl.OP_NO_COMPRESSION
-context.load_cert_chain(certfile='/srv/sixtyshareswhiskey/certs/cert.pem', keyfile='/srv/sixtyshareswhiskey/certs/key.pem')
-
-
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
@@ -33,7 +22,7 @@ def add_hsts_header(response):
 
 @app.route('/<path:filename>')
 def static_files(filename):
-    return send_from_directory(BASE_DIR, filename)
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -85,4 +74,4 @@ def post_chat():
     return "Message received", 200
 
 if __name__ == "__main__":
-    app.run(ssl_context=context, host="0.0.0.0", port=5000)
+    app.run(host="127.0.0.1", port=5000)
