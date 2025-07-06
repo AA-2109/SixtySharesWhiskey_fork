@@ -133,14 +133,10 @@ function stop_hostapd_and_dnsmasq() {
   sudo systemctl stop dnsmasq || true
 }
 
-function configure_static_IP() {
-  echo "[*] Configuring static IP for wlan0 via dhcpcd..."
-  # 1) Remove any existing 'interface wlan0' blocks
-  for i in 1 2; do
-    sudo sed -i '/^interface wlan0/,+3d' /etc/dhcpcd.conf
-  done
-
-  sudo mv dhcpd.conf /etc/dhcpcd.conf
+function configure_dhcp_static_IP() {
+  echo "[*] Moving DHCP server configuration files..."
+  sudo mv isc-dhcp-server /etc/default/isc-dhcp-server
+  sudo mv dhcpd.conf /etc/dhcp/dhcpcd.conf
 }
 
 function restart_dhcpd() {
@@ -333,7 +329,7 @@ function print_success() {
 function standalone_installation_logic() {
   disable_wpa_supplicant_temp
   stop_hostapd_and_dnsmasq
-  configure_static_IP
+  configure_dhcp_static_IP
   restart_dhcpd
   configure_dnsmask
   move_hostapd_conf
