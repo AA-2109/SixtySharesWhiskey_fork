@@ -41,19 +41,15 @@ A. Transfer the file to your pi using SFTP
 
 OR
 
-B. Use the command ```sudo nano sixtyshareswhiskey_setup.sh``` and then copy and paste in the script contents 
-Now in nano hit Ctrl + x and save the changes you made.
+B. Download ```sixtyshareswhiskey_setup.sh``` from Releases and run with ```-- --country=two_UPPECASE_LETTERS --password=Your_super_secret_password```
 
 
 # Run the script!
 
 Now run ```chmod +x sixtyshareswhiskey_setup.sh``` to make the script executeable
 
-Run ```sudo ./sixtyshareswhiskey_setup.sh --country=US --password=Your_super_secret_password``` to run the installer
+Run ```sudo ./blackbox.x --country=US --password=Your_super_secret_password``` to run the installer
 
-OR
-
-Download ```sixtyshareswhiskey_setup.sh``` from Releases and run with ```-- --country=two_UPPECASE_LETTERS --password=Your_super_secret_password```
 
 # After setup:
 
@@ -70,3 +66,6 @@ Ideal for drops, community share boxes, or field deployments
 
 Files and chat log are deleted after 24 hours by cron jobs
 
+# Aknowleghment
+Releases are packaged using brillian Makeself script by @megastep
+Link: https://github.com/megastep/makeself 
