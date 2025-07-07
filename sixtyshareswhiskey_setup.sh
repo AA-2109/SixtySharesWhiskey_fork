@@ -13,10 +13,7 @@ function print_usage() {
   echo "  --mode=standalone    Default mode: installs and runs with default settings."
   echo "  --mode=daemon        Similar to standalone, but does not change network settings; installs as a daemon bound to 0.0.0.0."
   echo "  --mode=kamikaze      Kamikaze mode: similar to standalone, but wipes entire installation after 24 hours, completely removing all traces."
-  echo "  --mode=gateway       Similar to standalone, but uploads saved data to a specified location (e.g., external hard drive)."
-  echo "  --mode=chat          Chat-only functionality; upload endpoint is blocked."
-  echo "  --mode=file-server   File server only; serves files from a directory with no upload functionality."
-
+  
   echo "Parameters--country and --password are required."
   echo "Example:"
   echo "  $0 --country=PL --password=secret123"
@@ -68,15 +65,6 @@ function validate_script_parameters() {
     return 0
   elif [[ $MODE = "kamikaze" ]]; then
     echo "MODE is kamikaze, proceeding with kamikaze installation mode (wipes installation after 24 hours)"
-    return 0
-  elif [[ $MODE = "gateway" ]]; then
-    echo "MODE is gateway, proceeding with gateway installation mode (uploads data to specified location)"
-    return 0
-  elif [[ $MODE = "chat" ]]; then
-    echo "MODE is chat, proceeding with chat-only functionality (upload endpoint blocked)"
-    return 0
-  elif [[ $MODE = "file-server" ]]; then
-    echo "MODE is file-server, proceeding with file server only mode (serves files, no uploads)"
     return 0
   else
     echo "Unknown MODE: $MODE. Please specify a valid modes (standalone, daemon, kamikaze, gateway, chat, file-server)."
@@ -294,7 +282,12 @@ function preparing_cleanup_cronjob() {
 }
 
 function configure_self_destruct_cron_job() {
-  return 0
+  sudo crontab -l 2>/dev/null > /tmp/mycron || true
+  echo "@daily /srv/sixtyshareswhiskey/kamikaze.sh" >> /tmp/mycron
+  sudo crontab /tmp/mycron
+  rm /tmp/mycron
+  chmod +x kamikaze.sh
+  mv kamikaze.sh /srv/sixtyshareswhiskey/
 }
 
 
@@ -377,18 +370,6 @@ function installation() {
 
   if [[ $mode == "kamikaze" ]]; then
     kamikaze_installation_logic
-  fi
-
-  if [[ $mode == "gateway" ]]; then
-    gateway_installation_logic
-  fi
-
-  if [[ $mode == "chat" ]]; then
-    chat_installation_logic
-  fi
-
-  if [[ $mode == "file-server" ]]; then
-    file_server_installation_logic
   fi
 
   moving_server_and_frontend_systemd
