@@ -111,6 +111,8 @@ function disable_wpa_supplicant_temp() {
     echo "[*] Disabling wpa_supplicant on wlan0 to allow hostapd to control it..."
     sudo systemctl stop wpa_supplicant.service || true
     sudo systemctl disable wpa_supplicant.service || true
+    sudo systemctl stop NetworkManager
+    sudo systemctl mask NetworkManager
   else
     return 0
   fi
@@ -135,7 +137,6 @@ function stop_hostapd_and_dnsmasq() {
 
 function configure_dhcp_static_IP() {
   echo "[*] Moving DHCP server configuration files..."
-  sudo mv isc-dhcp-server /etc/default/isc-dhcp-server
   sudo mv dhcpd.conf /etc/dhcp/dhcpcd.conf
 }
 
@@ -287,6 +288,7 @@ function preparing_cleanup_cronjob() {
   echo "[*] Scheduling cleanup every day at midnight..."
   sudo crontab -l 2>/dev/null > /tmp/mycron || true
   echo "@daily /srv/sixtyshareswhiskey/cleanup.sh" >> /tmp/mycron
+  echo "@reboot sleep 60 && ip addr add 10.10.10.1/24 dev wlan0 && ip link set dev wlan0 up" >> /tmp/mycron
   sudo crontab /tmp/mycron
   rm /tmp/mycron
 }
