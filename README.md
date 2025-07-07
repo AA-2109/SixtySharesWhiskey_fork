@@ -15,8 +15,7 @@ The script creates a local Wi-Fi network with no internet connection where users
 
 - New anonymous chat feature! (v1.2.1)
 
-<img width="602" alt="Screenshot 2025-06-04 at 23 58 23" src="https://github.com/user-attachments/assets/c4e95eb2-8d52-469b-a40b-a92c2d34f5f7" />
-
+<img width="602" alt="Screenshot 2025-06-04 at 23 58 23" src="https://github.com/user-attachments/assets/9e092ce3-3368-4b30-bab2-3dc4634c6709" />
 
 # To start
 
@@ -32,8 +31,6 @@ The script creates a local Wi-Fi network with no internet connection where users
 3. CHANGE THE WPA PASSPHRASE
 4. (Optional) CHANGE THE SSID
 5. VERIFY THAT YOU SAVE THE FILE WITH UNIX LF
-
-![image](https://github.com/user-attachments/assets/38fff35c-15e0-4a19-8319-fedacf2595fd)
 
 
 ![What to change](https://github.com/user-attachments/assets/8ada6058-f5dd-45e7-b60f-f7770d4bb9ec)
