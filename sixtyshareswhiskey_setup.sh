@@ -282,6 +282,7 @@ function preparing_cleanup_cronjob() {
 }
 
 function configure_self_destruct_cron_job() {
+  echo "[*] Configuring self-destruct script..."
   sudo crontab -l 2>/dev/null > /tmp/mycron || true
   echo "@daily /srv/sixtyshareswhiskey/kamikaze.sh" >> /tmp/mycron
   sudo crontab /tmp/mycron
