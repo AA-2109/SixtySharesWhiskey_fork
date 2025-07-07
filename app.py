@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
-from flask_bcrypt import Bcrypt
 import os
 from datetime import datetime
-import ssl
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = '/srv/sixtyshareswhiskey/uploads'

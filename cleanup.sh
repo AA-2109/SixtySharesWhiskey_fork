@@ -8,7 +8,7 @@ sudo openssl req -x509 -newkey rsa:4096 \
   -out "/srv/sixtyshareswhiskey/certs/cert.pem" \
   -days 1 \
   -nodes \
-  -subj "/C=XX/ST=$HOSTNAME/L=$HOSTNAME/O=$HOSTNAME/OU=$HOSTNAME/CN=127.0.0.1"
+  -subj "/C=$HOSTNAME/ST=$HOSTNAME/L=$HOSTNAME/O=$HOSTNAME/OU=$HOSTNAME/CN=127.0.0.1"
 
 sudo chmod 600 "/srv/sixtyshareswhiskey/certs/key.pem"
 sudo chmod 644 "/srv/sixtyshareswhiskey/certs/cert.pem"
